@@ -15,10 +15,14 @@ def to_vector(y, size):
 
 def sample(sess, tensors, hidden_dim, vec, max_iter=50):
     res = ''
-    initial_state = np.zeros((seq_length, 4 * hidden_dim))
 
-    for _ in xrange(max_iter):
+    # state = np.zeros((int(max_iter / seq_length) + 1, 2 * hidden_dim))
+
+    for i in xrange(max_iter):
+        # state_index = int(i / seq_length) + 1)
         X, y = vec.transform([res], False)
+        initial_state = np.zeros((len(X), 2 * hidden_dim))
+        # initial_state = state[:int(i / seq_length) + 1]
         feed_dict = {tensors['X']: X, tensors['initial_state']: initial_state}
         pred = sess.run(tensors['preds'], feed_dict=feed_dict)
         pred = vec.inv_chars[pred[-1]]
@@ -27,8 +31,8 @@ def sample(sess, tensors, hidden_dim, vec, max_iter=50):
         else:
             res += pred
 
-        next_hidden = tensors['next_hidden'].eval(feed_dict=feed_dict)
-        initial_state = np.vstack((initial_state, next_hidden))[1:]
+        # next_hidden = sess.run(tensors['next_hidden'], feed_dict=feed_dict)
+        # initial_state = np.vstack((initial_state, next_hidden))[1:]
 
     return res
 
@@ -50,7 +54,7 @@ if __name__ == '__main__':
 
     X = tf.placeholder(tf.float32, [None, seq_length, input_dim], 'X')
     y = tf.placeholder(tf.float32, [None, output_dim], 'y')
-    initial_state = tf.placeholder(tf.float32, [None, 4 * hidden_dim], 'initial_state')
+    initial_state = tf.placeholder(tf.float32, [None, 2 * hidden_dim], 'initial_state')
     
     lstm, next_hidden = lstm_layer(X, input_dim, seq_length, hidden_dim, 
                                    output_dim, initial_state, 'lstm')
@@ -86,7 +90,7 @@ if __name__ == '__main__':
             batch_x = X_data[i:i+batch_size]
             batch_y = y_data[i:i+batch_size]
             batch_y = to_vector(batch_y, output_dim)
-            batch_initial = np.zeros((len(batch_x), 4 * hidden_dim))
+            batch_initial = np.zeros((len(batch_x), 2 * hidden_dim))
             feed_dict = {X: batch_x, y: batch_y, initial_state:batch_initial}
             sess.run(train_step, feed_dict=feed_dict)
             summary = sess.run(merged, feed_dict=feed_dict)

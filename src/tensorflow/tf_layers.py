@@ -42,6 +42,7 @@ def fc_layer(input_tensor, input_dim, output_dim, name):
 def lstm_layer(input_tensor, input_dim, seq_length, hidden_dim, output_dim, 
                initial_state, name, size=1, forget_bias=1.0):
     with tf.name_scope(name):
+        # batch_size = tf.placeholder(tf.int32)
         with tf.name_scope('weights'):
             W_in = weights([input_dim, hidden_dim])
             variable_summaries(W_in, name + '/weights_in')
@@ -62,6 +63,7 @@ def lstm_layer(input_tensor, input_dim, seq_length, hidden_dim, output_dim,
             if size > 1:
                 lstm_cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * size)
 
+            # activations = [tf.reshape(i, (batch_size, seq_length)) for i in tf.split(0, seq_length, activations)]
             activations = tf.split(0, seq_length, activations)
 
             lstm_out, lstm_state = tf.nn.rnn(lstm_cell, 
